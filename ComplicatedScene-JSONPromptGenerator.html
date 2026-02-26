@@ -1,0 +1,1960 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>游戏画面_JSON提示词生成器_欧</title>
+    <style>
+        body {
+            font-family: "Microsoft YaHei", "SimSun", Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            background-color: white;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+            border-left: 4px solid #3498db;
+            padding-left: 10px;
+        }
+
+        h3 {
+            color: #555;
+            margin-top: 15px;
+            font-size: 16px;
+        }
+
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .field {
+            margin: 15px 0;
+        }
+
+        label {
+            font-weight: bold;
+            color: #2c3e50;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        input[list] {
+            cursor: pointer;
+        }
+
+        datalist {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        textarea {
+            min-height: 60px;
+            resize: vertical;
+        }
+
+        .example {
+            background-color: #e8f4f8;
+            padding: 10px;
+            border-left: 3px solid #3498db;
+            margin: 10px 0;
+            font-style: italic;
+            color: #555;
+            font-size: 13px;
+        }
+
+        .array-field {
+            margin: 10px 0;
+        }
+
+        .array-item {
+            margin: 5px 0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .array-item input {
+            flex: 1;
+        }
+
+        .add-btn {
+            background-color: #95a5a6;
+            color: white;
+            padding: 5px 15px;
+            border: none;
+            border-radius: 3px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+
+        .add-btn:hover {
+            background-color: #7f8c8d;
+        }
+
+        .remove-btn {
+            background-color: #e74c3c;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 3px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .remove-btn:hover {
+            background-color: #c0392b;
+        }
+
+        .generate-btn {
+            background-color: #3498db;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            display: block;
+            margin: 30px auto;
+            transition: background-color 0.3s;
+        }
+
+        .generate-btn:hover {
+            background-color: #2980b9;
+        }
+
+        .generate-btn:active {
+            background-color: #21618c;
+        }
+
+        .generate-btn:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        .output-section {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #2c3e50;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .output-section.show {
+            display: block;
+        }
+
+        .output-title {
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .json-output {
+            background-color: #1a1a1a;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 600px;
+            overflow-y: auto;
+            border: 1px solid #444;
+        }
+
+        .copy-btn {
+            background-color: #27ae60;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+
+        .copy-btn:hover {
+            background-color: #229954;
+        }
+
+        .copy-btn:active {
+            background-color: #1e8449;
+        }
+
+        .copy-success {
+            color: #27ae60;
+            margin-left: 10px;
+            font-weight: bold;
+        }
+
+        .loading {
+            color: #3498db;
+            margin-left: 10px;
+            font-weight: bold;
+        }
+
+        .sub-field {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .character-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background-color: #fff;
+        }
+
+        /* AI上传区域 */
+        .ai-upload-section {
+            background: linear-gradient(135deg, #e0f7fa 0%, #e1bee7 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+            border: 2px dashed #9c27b0;
+        }
+
+        .ai-upload-title {
+            color: #4a148c;
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .ai-btn {
+            background-color: #9c27b0;
+            color: white;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .ai-btn:hover {
+            background-color: #7b1fa2;
+            transform: translateY(-2px);
+        }
+
+        .ai-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .ai-loading {
+            display: none;
+            margin-top: 10px;
+            color: #4a148c;
+            font-weight: bold;
+        }
+
+        .ai-preview {
+            max-width: 200px;
+            max-height: 200px;
+            margin-top: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            display: none;
+        }
+
+        /* --- 侧边悬浮目录样式 --- */
+        .catalog-sidebar {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 220px;
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            max-height: 90vh;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            border-left: 4px solid #3498db;
+        }
+
+        @media (min-width: 1400px) {
+            .catalog-sidebar {
+                display: block;
+                right: calc(50% - 760px);
+                /*稍微再往右挪一点*/
+            }
+        }
+
+        @media (min-width: 1250px) and (max-width: 1399px) {
+            .catalog-sidebar {
+                display: block;
+                right: 10px;
+                width: 180px;
+            }
+        }
+
+        .catalog-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .catalog-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .catalog-item {
+            margin-bottom: 5px;
+        }
+
+        .catalog-link {
+            display: block;
+            text-decoration: none;
+            color: #666;
+            font-size: 13px;
+            padding: 5px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: pointer;
+        }
+
+        .catalog-link:hover {
+            background-color: #f0f7fa;
+            color: #3498db;
+        }
+
+
+
+        /* 特殊链接样式（上传和生成） */
+        .catalog-link.special-link {
+            font-weight: bold;
+            color: #9c27b0;
+            /* 紫色呼应AI按钮 */
+        }
+
+        /* 修正点击跳转后的定位偏移 */
+        .section h2,
+        .ai-upload-section,
+        .generate-btn {
+            scroll-margin-top: 20px;
+        }
+    </style>
+    <!-- 引入 Google Generative AI SDK -->
+    <script type="importmap">
+      {
+        "imports": {
+          "@google/generative-ai": "https://esm.run/@google/generative-ai"
+        }
+      }
+    </script>
+</head>
+
+<body>
+    <div class="container">
+        <h1>【灵眸slg4】游戏画面_JSON提示词生成工具</h1>
+
+        <!-- AI 图片解析区域 (已移除API Key输入框) -->
+        <div class="ai-upload-section">
+            <div class="ai-upload-title">AI智能解析：上传图片自动填充</div>
+            <div class="file-input-wrapper">
+                <input type="file" id="imageInput" accept="image/*" style="display: none;"
+                    onchange="handleImageUpload(event)">
+                <button class="ai-btn" onclick="document.getElementById('imageInput').click()">📁选择图片并解析</button>
+            </div>
+            <div id="aiStatus" class="ai-loading">AI正在解析画面... 请稍候</div>
+            <img id="imagePreview" class="ai-preview" alt="Preview">
+        </div>
+
+        <div class="section">
+            <h2>一、目标与场景类型</h2>
+
+            <div class="field">
+                <label>目标描述（Objective）：</label>
+                <textarea id="objective" placeholder="描述要生成的游戏画面目标，例如：生成一张暗黑风格等距视角ARPG战斗场景画面"></textarea>
+                <div class="example">示例：生成一张暗黑风格等距视角ARPG战斗场景画面，表现多人小队在地下城中与怪物激烈厮杀</div>
+            </div>
+
+            <div class="field">
+                <label>场景类型（SceneType）：</label>
+                <input type="text" id="sceneType" list="sceneTypeOptions" placeholder="例如：等距视角动作RPG游戏画面截图">
+                <datalist id="sceneTypeOptions">
+                    <option value="等距视角动作RPG游戏画面截图">
+                    <option value="俯视角策略游戏战斗画面">
+                    <option value="第三人称视角动作游戏场景">
+                    <option value="第一人称射击游戏画面">
+                    <option value="横版卷轴动作游戏画面">
+                    <option value="塔防游戏战斗场景">
+                    <option value="MOBA游戏团战画面">
+                    <option value="MMORPG副本战斗画面">
+                    <option value="卡牌游戏战斗画面">
+                    <option value="回合制RPG战斗画面">
+                </datalist>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>二、相机设置（Camera）</h2>
+
+            <div class="field">
+                <label>视角（View）：</label>
+                <input type="text" id="cameraView" list="cameraViewOptions" placeholder="例如：等距视角、俯视角度">
+                <datalist id="cameraViewOptions">
+                    <option value="等距视角、俯视角度">
+                    <option value="45度等距视角">
+                    <option value="俯视角度、鸟瞰视角">
+                    <option value="第三人称视角">
+                    <option value="第一人称视角">
+                    <option value="侧视角">
+                    <option value="低角度仰视">
+                    <option value="高角度俯视">
+                    <option value="斜45度视角">
+                    <option value="正视角">
+                </datalist>
+            </div>
+
+            <div class="field">
+                <label>距离（Distance）：</label>
+                <input type="text" id="cameraDistance" list="cameraDistanceOptions" placeholder="例如：中远景">
+                <datalist id="cameraDistanceOptions">
+                    <option value="中远景">
+                    <option value="远景">
+                    <option value="中景">
+                    <option value="近景">
+                    <option value="特写">
+                    <option value="超远景">
+                    <option value="全景">
+                    <option value="中近景">
+                    <option value="大特写">
+                </datalist>
+            </div>
+
+            <div class="field">
+                <label>透视（Perspective）：</label>
+                <input type="text" id="cameraPerspective" list="cameraPerspectiveOptions"
+                    placeholder="例如：暗黑破坏神风格的经典ARPG透视">
+                <datalist id="cameraPerspectiveOptions">
+                    <option value="暗黑破坏神风格的经典ARPG透视">
+                    <option value="等距视角RPG透视">
+                    <option value="俯视角策略游戏透视">
+                    <option value="第三人称动作游戏透视">
+                    <option value="2.5D视角透视">
+                    <option value="经典RPG俯视透视">
+                    <option value="现代ARPG等距透视">
+                </datalist>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>三、环境（Environment）</h2>
+
+            <div class="field">
+                <label>位置（Location）：</label>
+                <input type="text" id="envLocation" list="envLocationOptions" placeholder="例如：暗黑哥特式地下城">
+                <datalist id="envLocationOptions">
+                    <option value="暗黑哥特式地下城">
+                    <option value="废弃的古代遗迹">
+                    <option value="阴暗的森林">
+                    <option value="火山洞穴">
+                    <option value="冰雪覆盖的山洞">
+                    <option value="沙漠废墟">
+                    <option value="魔法塔内部">
+                    <option value="地下墓穴">
+                    <option value="恶魔城堡">
+                    <option value="龙穴">
+                    <option value="战场废墟">
+                    <option value="古代神庙">
+                </datalist>
+            </div>
+
+            <div class="field">
+                <label>地板（Floor）：</label>
+                <input type="text" id="envFloor" list="envFloorOptions" placeholder="例如：覆盖着血液、粘液和内脏的石砖地板">
+                <datalist id="envFloorOptions">
+                    <option value="覆盖着血液、粘液和内脏的石砖地板">
+                    <option value="古老的石砖地板">
+                    <option value="破损的木质地板">
+                    <option value="覆盖着苔藓的石板">
+                    <option value="泥泞的地面">
+                    <option value="冰面">
+                    <option value="沙地">
+                    <option value="魔法阵地板">
+                    <option value="金属网格地板">
+                    <option value="水晶地面">
+                </datalist>
+            </div>
+
+            <div class="field">
+                <label>建筑（Architecture）：</label>
+                <div id="architectureContainer">
+                    <div class="array-item">
+                        <input type="text" class="architecture-item" placeholder="例如：古老的石柱">
+                        <button type="button" class="remove-btn" onclick="removeArrayItem(this)">删除</button>
+                    </div>
+                </div>
+                <button type="button" class="add-btn"
+                    onclick="addArrayItem('architectureContainer', 'architecture-item', '例如：古老的石柱')">添加建筑元素</button>
+            </div>
+
+            <div class="field">
+                <label>氛围（Atmosphere）：</label>
+                <input type="text" id="envAtmosphere" list="envAtmosphereOptions" placeholder="例如：压抑、黑暗、地狱般的">
+                <datalist id="envAtmosphereOptions">
+                    <option value="压抑、黑暗、地狱般的">
+                    <option value="神秘、诡异">
+                    <option value="紧张、危险">
+                    <option value="史诗、壮丽">
+                    <option value="恐怖、阴森">
+                    <option value="激烈、混乱">
+                    <option value="庄严、神圣">
+                    <option value="荒凉、死寂">
+                    <option value="充满魔法能量">
+                    <option value="血腥、残酷">
+                </datalist>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>四、光照（Lighting）</h2>
+
+            <div class="field">
+                <label>主光源（Primary）：</label>
+                <input type="text" id="lightPrimary" list="lightPrimaryOptions" placeholder="例如：低调的电影级光照">
+                <datalist id="lightPrimaryOptions">
+                    <option value="低调的电影级光照">
+                    <option value="戏剧性光照">
+                    <option value="自然光">
+                    <option value="魔法光效">
+                    <option value="火把照明">
+                    <option value="冷色调环境光">
+                    <option value="暖色调环境光">
+                    <option value="强对比光照">
+                    <option value="柔光">
+                    <option value="逆光">
+                    <option value="侧光">
+                    <option value="顶光">
+                </datalist>
+            </div>
+
+            <div class="field">
+                <label>颜色对比（ColorContrast）：</label>
+                <div id="colorContrastContainer">
+                    <div class="array-item">
+                        <input type="text" class="colorContrast-item" placeholder="例如：冷色调的蓝绿色环境光">
+                        <button type="button" class="remove-btn" onclick="removeArrayItem(this)">删除</button>
+                    </div>
+                </div>
+                <button type="button" class="add-btn"
+                    onclick="addArrayItem('colorContrastContainer', 'colorContrast-item', '例如：冷色调的蓝绿色环境光')">添加颜色对比</button>
+            </div>
+
+            <div class="field">
+                <label>光照效果（Effects）：</label>
+                <div id="lightEffectsContainer">
+                    <div class="array-item">
+                        <input type="text" class="lightEffects-item" placeholder="例如：体积雾">
+                        <button type="button" class="remove-btn" onclick="removeArrayItem(this)">删除</button>
+                    </div>
+                </div>
+                <button type="button" class="add-btn"
+                    onclick="addArrayItem('lightEffectsContainer', 'lightEffects-item', '例如：体积雾')">添加光照效果</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>五、角色（Characters）</h2>
+
+            <h3>英雄（Heroes）</h3>
+            <div id="heroesContainer">
+                <div class="character-item">
+                    <div class="field">
+                        <label>角色类型（Role）：</label>
+                        <input type="text" class="hero-role" list="heroRoleOptions" placeholder="例如：重装骑士/战士">
+                        <datalist id="heroRoleOptions">
+                            <option value="重装骑士/战士">
+                            <option value="轻装盗贼/刺客">
+                            <option value="法师/术士">
+                            <option value="弓箭手/游侠">
+                            <option value="牧师/治疗师">
+                            <option value="野蛮人">
+                            <option value="圣骑士">
+                            <option value="死灵法师">
+                            <option value="德鲁伊">
+                            <option value="吟游诗人">
+                        </datalist>
+                    </div>
+                    <div class="field">
+                        <label>护甲/服装（Armor/Outfit）：</label>
+                        <input type="text" class="hero-armor" list="heroArmorOptions" placeholder="例如：重型中世纪板甲">
+                        <datalist id="heroArmorOptions">
+                            <option value="重型中世纪板甲">
+                            <option value="轻便皮甲">
+                            <option value="魔法法袍">
+                            <option value="锁子甲">
+                            <option value="布甲">
+                            <option value="龙鳞甲">
+                            <option value="暗影斗篷">
+                            <option value="圣骑士盔甲">
+                            <option value="野蛮人战甲">
+                        </datalist>
+                    </div>
+                    <div class="field">
+                        <label>武器（Weapon）：</label>
+                        <input type="text" class="hero-weapon" list="heroWeaponOptions" placeholder="例如：大型双手剑">
+                        <datalist id="heroWeaponOptions">
+                            <option value="大型双手剑">
+                            <option value="单手剑和盾牌">
+                            <option value="法杖">
+                            <option value="长弓">
+                            <option value="双匕首">
+                            <option value="战斧">
+                            <option value="战锤">
+                            <option value="长矛">
+                            <option value="魔法书">
+                            <option value="十字弓">
+                        </datalist>
+                    </div>
+                    <div class="field">
+                        <label>姿态（Pose）：</label>
+                        <input type="text" class="hero-pose" list="heroPoseOptions" placeholder="例如：举剑准备攻击">
+                        <datalist id="heroPoseOptions">
+                            <option value="举剑准备攻击">
+                            <option value="正在施法">
+                            <option value="拉弓瞄准">
+                            <option value="冲刺攻击">
+                            <option value="防御姿态">
+                            <option value="跳跃攻击">
+                            <option value="倒地挣扎">
+                            <option value="胜利姿态">
+                            <option value="奔跑">
+                            <option value="站立警戒">
+                        </datalist>
+                    </div>
+                    <div class="field">
+                        <label>外观/状态（Appearance/Condition）：</label>
+                        <input type="text" class="hero-appearance" list="heroAppearanceOptions"
+                            placeholder="例如：沾满鲜血的盔甲">
+                        <datalist id="heroAppearanceOptions">
+                            <option value="沾满鲜血的盔甲">
+                            <option value="破损的装备">
+                            <option value="魔法光芒环绕">
+                            <option value="疲惫不堪">
+                            <option value="充满斗志">
+                            <option value="伤痕累累">
+                            <option value="装备精良">
+                            <option value="衣衫褴褛">
+                        </datalist>
+                    </div>
+                    <div class="field">
+                        <label>魔法/技能（Magic/Skill）：</label>
+                        <input type="text" class="hero-magic" list="heroMagicOptions" placeholder="例如：双手环绕着火焰法术（可选）">
+                        <datalist id="heroMagicOptions">
+                            <option value="双手环绕着火焰法术">
+                            <option value="冰霜魔法">
+                            <option value="雷电法术">
+                            <option value="治疗光环">
+                            <option value="暗影能量">
+                            <option value="神圣光芒">
+                            <option value="毒雾">
+                            <option value="能量护盾">
+                        </datalist>
+                    </div>
+                    <button type="button" class="remove-btn" onclick="removeCharacter(this, 'hero')">删除此英雄</button>
+                </div>
+            </div>
+            <button type="button" class="add-btn" onclick="addCharacter('hero')">添加英雄</button>
+
+            <h3>敌人（Enemies）</h3>
+            <div id="enemiesContainer">
+                <div class="character-item">
+                    <div class="field">
+                        <label>敌人类型（Type）：</label>
+                        <input type="text" class="enemy-type" list="enemyTypeOptions" placeholder="例如：变异恶魔/亡灵生物">
+                        <datalist id="enemyTypeOptions">
+                            <option value="变异恶魔/亡灵生物">
+                            <option value="骷髅战士">
+                            <option value="僵尸">
+                            <option value="哥布林">
+                            <option value="兽人">
+                            <option value="龙">
+                            <option value="元素生物">
+                            <option value="暗影生物">
+                            <option value="机械敌人">
+                            <option value="巨型蜘蛛">
+                            <option value="食人魔">
+                        </datalist>
+                    </div>
+
+                    <div class="field">
+                        <label>外观（Appearance）：</label>
+                        <div class="enemy-appearance-container">
+                            <div class="array-item">
+                                <input type="text" class="enemy-appearance-item" placeholder="例如：紫色腐烂的皮肤">
+                                <button type="button" class="remove-btn" onclick="removeArrayItem(this)">删除</button>
+                            </div>
+                        </div>
+                        <button type="button" class="add-btn" onclick="addEnemyAppearance(this)">添加外观描述</button>
+                    </div>
+
+                    <div class="field">
+                        <label>行为（Behavior）：</label>
+                        <input type="text" class="enemy-behavior" list="enemyBehaviorOptions" placeholder="例如：包围并攻击英雄">
+                        <datalist id="enemyBehaviorOptions">
+                            <option value="包围并攻击英雄">
+                            <option value="从远处攻击">
+                            <option value="近战冲锋">
+                            <option value="施放魔法">
+                            <option value="召唤援军">
+                            <option value="逃跑">
+                            <option value="防御姿态">
+                            <option value="群体围攻">
+                        </datalist>
+                    </div>
+
+                    <button type="button" class="remove-btn" onclick="removeCharacter(this, 'enemy')">删除此敌人</button>
+                </div>
+            </div>
+            <button type="button" class="add-btn" onclick="addCharacter('enemy')">添加敌人</button>
+        </div>
+
+        <div class="section">
+            <h2>六、战斗效果（CombatEffects）</h2>
+
+            <div class="field">
+                <label>血液效果（Blood）：</label>
+                <input type="text" id="combatBlood" list="combatBloodOptions" placeholder="例如：地面上大量血液飞溅">
+                <datalist id="combatBloodOptions">
+                    <option value="地面上大量血液飞溅">
+                    <option value="血液喷溅">
+                    <option value="血迹斑斑">
+                    <option value="血液流淌">
+                    <option value="血液飞溅特效">
+                    <option value="血腥场面">
+                </datalist>
+            </div>
+
+            <div class="field">
+                <label>魔法效果（Magic）：</label>
+                <div id="combatMagicContainer">
+                    <div class="array-item">
+                        <input type="text" class="combatMagic-item" placeholder="例如：火焰环">
+                        <button type="button" class="remove-btn" onclick="removeArrayItem(this)">删除</button>
+                    </div>
+                </div>
+                <button type="button" class="add-btn"
+                    onclick="addArrayItem('combatMagicContainer', 'combatMagic-item', '例如：火焰环')">添加魔法效果</button>
+            </div>
+
+            <div class="field">
+                <label>环境交互（EnvironmentInteraction）：</label>
+                <input type="text" id="combatEnvInteraction" placeholder="例如：粘液水坑和内脏对移动产生反应">
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>七、UI元素（UIElements）</h2>
+
+            <div class="field">
+                <label>HUD元素：</label>
+                <div id="uiHudContainer">
+                    <div class="array-item">
+                        <input type="text" class="uiHud-item" placeholder="例如：红色生命球">
+                        <button type="button" class="remove-btn" onclick="removeArrayItem(this)">删除</button>
+                    </div>
+                </div>
+                <button type="button" class="add-btn"
+                    onclick="addArrayItem('uiHudContainer', 'uiHud-item', '例如：红色生命球')">添加HUD元素</button>
+            </div>
+
+            <div class="field">
+                <label>UI风格（Style）：</label>
+                <input type="text" id="uiStyle" list="uiStyleOptions" placeholder="例如：暗黑哥特式奇幻游戏界面">
+                <datalist id="uiStyleOptions">
+                    <option value="暗黑哥特式奇幻游戏界面">
+                    <option value="现代简约风格界面">
+                    <option value="中世纪风格界面">
+                    <option value="科幻风格界面">
+                    <option value="像素风格界面">
+                    <option value="透明玻璃风格界面">
+                </datalist>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>八、艺术风格（ArtStyle）</h2>
+
+            <div class="field">
+                <label>类型（Genre）：</label>
+                <input type="text" id="artGenre" list="artGenreOptions" placeholder="例如：暗黑奇幻">
+                <datalist id="artGenreOptions">
+                    <option value="暗黑奇幻">
+                    <option value="中世纪奇幻">
+                    <option value="科幻">
+                    <option value="蒸汽朋克">
+                    <option value="赛博朋克">
+                    <option value="日式奇幻">
+                    <option value="西方奇幻">
+                    <option value="后启示录">
+                </datalist>
+            </div>
+
+            <div class="field">
+                <label>风格（Style）：</label>
+                <input type="text" id="artStyle" list="artStyleOptions" placeholder="例如：高细节写实游戏艺术">
+                <datalist id="artStyleOptions">
+                    <option value="高细节写实游戏艺术">
+                    <option value="卡通风格">
+                    <option value="低多边形风格">
+                    <option value="像素艺术">
+                    <option value="手绘风格">
+                    <option value="概念艺术风格">
+                    <option value="电影级写实">
+                    <option value="油画风格">
+                    <option value="水彩风格">
+                </datalist>
+            </div>
+
+            <div class="field">
+                <label>影响/参考（Influence）：</label>
+                <div id="artInfluenceContainer">
+                    <div class="array-item">
+                        <input type="text" class="artInfluence-item" placeholder="例如：暗黑破坏神风格的ARPG">
+                        <button type="button" class="remove-btn" onclick="removeArrayItem(this)">删除</button>
+                    </div>
+                </div>
+                <button type="button" class="add-btn"
+                    onclick="addArrayItem('artInfluenceContainer', 'artInfluence-item', '例如：暗黑破坏神风格的ARPG')">添加参考</button>
+            </div>
+
+            <div class="field">
+                <label>渲染（Rendering）：</label>
+                <input type="text" id="artRendering" list="artRenderingOptions" placeholder="例如：高度详细的纹理，电影级写实">
+                <datalist id="artRenderingOptions">
+                    <option value="高度详细的纹理，电影级写实">
+                    <option value="PBR材质渲染">
+                    <option value="实时渲染">
+                    <option value="预渲染">
+                    <option value="光线追踪">
+                    <option value="卡通渲染">
+                    <option value="手绘风格渲染">
+                </datalist>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>九、色彩方案（ColorPalette）</h2>
+
+            <div class="field">
+                <label>主色调（Dominant）：</label>
+                <div id="colorDominantContainer">
+                    <div class="array-item">
+                        <input type="text" class="colorDominant-item" placeholder="例如：深红色">
+                        <button type="button" class="remove-btn" onclick="removeArrayItem(this)">删除</button>
+                    </div>
+                </div>
+                <button type="button" class="add-btn"
+                    onclick="addArrayItem('colorDominantContainer', 'colorDominant-item', '例如：深红色')">添加主色调</button>
+            </div>
+
+            <div class="field">
+                <label>强调色（Accent）：</label>
+                <div id="colorAccentContainer">
+                    <div class="array-item">
+                        <input type="text" class="colorAccent-item" placeholder="例如：橙色火焰">
+                        <button type="button" class="remove-btn" onclick="removeArrayItem(this)">删除</button>
+                    </div>
+                </div>
+                <button type="button" class="add-btn"
+                    onclick="addArrayItem('colorAccentContainer', 'colorAccent-item', '例如：橙色火焰')">添加强调色</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>十、质量设置（QualitySettings）</h2>
+
+            <div class="field">
+                <label>细节级别（DetailLevel）：</label>
+                <input type="text" id="qualityDetail" list="qualityDetailOptions" placeholder="例如：超高细节">
+                <datalist id="qualityDetailOptions">
+                    <option value="超高细节">
+                    <option value="高细节">
+                    <option value="中等细节">
+                    <option value="低细节">
+                    <option value="极致细节">
+                </datalist>
+            </div>
+
+            <div class="field">
+                <label>分辨率（Resolution）：</label>
+                <input type="text" id="qualityResolution" list="qualityResolutionOptions" placeholder="例如：4K">
+                <datalist id="qualityResolutionOptions">
+                    <option value="4K">
+                    <option value="2K">
+                    <option value="1080p">
+                    <option value="720p">
+                    <option value="8K">
+                </datalist>
+            </div>
+
+            <div class="field">
+                <label>清晰度（Sharpness）：</label>
+                <input type="text" id="qualitySharpness" list="qualitySharpnessOptions" placeholder="例如：清晰、电影级">
+                <datalist id="qualitySharpnessOptions">
+                    <option value="清晰、电影级">
+                    <option value="超清晰">
+                    <option value="锐利">
+                    <option value="柔和">
+                    <option value="电影级质感">
+                </datalist>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>十一、负面提示词（NegativePrompt）</h2>
+
+            <div class="field">
+                <label>不希望出现的元素：</label>
+                <div id="negativePromptContainer">
+                    <div class="array-item">
+                        <input type="text" class="negativePrompt-item" placeholder="例如：卡通风格">
+                        <button type="button" class="remove-btn" onclick="removeArrayItem(this)">删除</button>
+                    </div>
+                </div>
+                <button type="button" class="add-btn"
+                    onclick="addArrayItem('negativePromptContainer', 'negativePrompt-item', '例如：卡通风格')">添加负面提示词</button>
+                <div class="example">请根据您的需求添加不希望出现的元素，如：卡通、动漫、低细节等</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>十二、图生图修改指令</h2>
+
+            <div class="field">
+                <label>需要保留的元素：</label>
+                <textarea id="keepElements" placeholder="列出希望在新图中保留的原始图片元素"></textarea>
+                <div class="example">示例：保留角色的基本外观、保留背景的樱花元素</div>
+            </div>
+
+            <div class="field">
+                <label>需要修改的元素：</label>
+                <textarea id="modifyElements" placeholder="列出希望在新图中修改或替换的元素"></textarea>
+                <div class="example">示例：将服装改为现代风格、将背景改为城市夜景</div>
+            </div>
+
+            <div class="field">
+                <label>需要添加的元素：</label>
+                <textarea id="addElements" placeholder="列出希望在新图中新增的元素"></textarea>
+            </div>
+
+            <div class="field">
+                <label>需要移除的元素：</label>
+                <textarea id="removeElements" placeholder="列出希望在新图中删除的元素"></textarea>
+            </div>
+        </div>
+
+        <button class="generate-btn" onclick="generateJSON()" id="generateBtn">生成JSON提示词</button>
+        <span class="loading" id="loadingText" style="display: none;">正在翻译中...</span>
+
+        <div class="output-section" id="outputSection">
+            <div class="output-title">生成的JSON提示词：</div>
+            <div class="json-output" id="jsonOutput"></div>
+            <button class="copy-btn" onclick="copyJSON()">复制JSON</button>
+            <span class="copy-success" id="copySuccess"></span>
+        </div>
+    </div>
+
+    <script type="module">
+        import { GoogleGenerativeAI } from "@google/generative-ai";
+
+        window.handleImageUpload = async function (event) {
+            const file = event.target.files[0];
+            const statusDiv = document.getElementById('aiStatus');
+            const previewImg = document.getElementById('imagePreview');
+
+            if (!file) return;
+
+            // ==========================================================
+            // 🚀 无需后端、无需配置文件的分发方案：使用 localStorage 存储密钥
+            // 这样打包发给任何人，他们只需要本地双击打开 HTML 即可直接运行！
+            // ==========================================================
+            let API_KEY = localStorage.getItem('GEMINI_API_KEY');
+
+            if (!API_KEY) {
+                // 首次使用时弹出输入框，并永久存储在当前浏览器的缓存中
+                API_KEY = prompt("🔧 首次使用AI解析功能，需要配置 Gemini API Key：\n\n请粘贴您的专属 API Key，程序会将其安全保存在您的浏览器本地，下一次即可直接点开解析：");
+
+                if (API_KEY && API_KEY.trim() !== "") {
+                    API_KEY = API_KEY.trim();
+                    localStorage.setItem('GEMINI_API_KEY', API_KEY);
+                } else {
+                    alert("❌ 未配置 API Key，操作已取消。\n您可以随时刷新页面重新运行。如果以后需要更换 Key，可以清除浏览器缓存。");
+                    return; // 用户取消或未输入则安全退出
+                }
+            }
+
+            statusDiv.style.display = 'block';
+            statusDiv.textContent = '密钥获取成功，正在连接 AI...';
+
+            // 显示预览
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                previewImg.src = e.target.result;
+                previewImg.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+
+            statusDiv.style.display = 'block';
+            statusDiv.textContent = '正在读取图片并连接 Gemini AI...';
+
+            try {
+                // 初始化 API
+                const genAI = new GoogleGenerativeAI(API_KEY);
+                const model = genAI.getGenerativeModel({
+                    model: "gemini-3-flash-preview",
+                    generationConfig: { responseMimeType: "application/json" }
+                });
+
+                // 将文件转换为 Base64
+                const base64Data = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result.split(',')[1]);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+
+                const prompt = `
+                你是一位资深的游戏视觉分解专家与美术指导。请专业、细致地分析这张游戏截图，并以此 JSON 格式返回。所有输出文本必须是中文。
+                
+                指令与要求：
+                1. 专业性：请尽可能使用游戏行业标准的美术术语（如：次世代PBR渲染、全局光照GI、体积雾、等距视角、环境光遮蔽AO等）。
+                2. 准确性：如图片中不存在某些元素（如没有敌人、没有UI等），请将对应字段设为空字符串 "" 或空数组 []，不要无中生有。
+                3. 细节捕捉：请仔细留意材质细节、打光倾向、色彩对比（主色调与强调色）及人物的具体姿势构图。
+                
+                请严格按照以下 JSON 数据结构输出（保持字段名不变）：
+                {
+                    "objective": "一句话精炼概括画面的核心表现目标",
+                    "sceneType": "场景玩法类型（如等距视角动作RPG、俯视角SLG）",
+                    "cameraView": "相机视角（如斜45度等距视角、俯视、平视）",
+                    "cameraDistance": "镜头距离（如近景特写、中景、远景、全景）",
+                    "cameraPerspective": "透视方式（如三点透视、正交透视）",
+                    "envLocation": "环境地点描述",
+                    "envFloor": "地面材质与纹理描述",
+                    "architecture": ["建筑或地标元素1", "建筑元素2"],
+                    "envAtmosphere": "整体环境氛围（如压抑、史诗、阴森）",
+                    "lightPrimary": "主光源类型及方向",
+                    "colorContrast": ["冷暖色对比或补色对比描述1", "描述2"],
+                    "lightEffects": ["具体光效描述（如丁达尔效应、泛光）", "光效2"],
+                    "heroes": [
+                        { "role": "主要角色职业定位", "armor": "穿着护甲类型", "weapon": "持有武器", "pose": "当前动作姿态", "appearance": "外貌状态细节", "magic": "技能特效表现" }
+                    ],
+                    "enemies": [
+                        { "type": "敌对单位类型", "behavior": "当前行为模式", "appearance": ["外观特征细节1", "特征2"] }
+                    ],
+                    "combatBlood": "战斗相关血腥/受击程度描述",
+                    "combatMagic": ["全局或区域魔法/受击特效1", "特效2"],
+                    "combatEnvInteraction": "战斗对环境的破坏或交互描述",
+                    "uiHud": ["显著的HUD/UI组件1", "UI组件2"],
+                    "uiStyle": "UI的整体视觉风格（如写实、扁平、扁平化拟物）",
+                    "artGenre": "核心艺术流派（如暗黑哥特、废土科幻）",
+                    "artStyle": "美术风格倾向（如美漫风、高写实、低多边形）",
+                    "artInfluence": ["可能有参考价值的游戏/艺术作品风格", "风格2"],
+                    "artRendering": "渲染管线或画质特征表现（如卡通渲染、写实PBR）",
+                    "colorDominant": ["占据画面主导的颜色1", "颜色2"],
+                    "colorAccent": ["用于视觉引导或高光强调的颜色1", "颜色2"],
+                    "qualityDetail": "细节丰富度评估",
+                    "qualityResolution": "原生画面分辨率预估",
+                    "qualitySharpness": "画面锐度与清晰度"
+                }
+                `;
+
+                statusDiv.textContent = 'AI 正在深度解析画面细节...';
+
+                const result = await model.generateContent([
+                    prompt,
+                    { inlineData: { data: base64Data, mimeType: file.type } }
+                ]);
+
+                const response = await result.response;
+                const jsonText = response.text();
+                const data = JSON.parse(jsonText);
+
+                statusDiv.textContent = '解析完成！正在填充表单...';
+
+                // 自动填充表单
+                populateFormWithAI(data);
+
+                statusDiv.textContent = '✨填充完成！可以继续手动调整细节！！！✨';
+
+            } catch (error) {
+                console.error("AI Error:", error);
+                statusDiv.textContent = '❌ 解析失败: ' + error.message;
+                alert('AI 解析失败，请检查 API Key 是否正确或网络连接。');
+            }
+        };
+
+        // 填充表单逻辑
+        function populateFormWithAI(data) {
+            // 简单字段映射 helper
+            const setVal = (id, val) => {
+                const el = document.getElementById(id);
+                if (el && val) el.value = val;
+            };
+
+            // 数组字段映射 helper
+            const setArray = (containerId, inputClass, items) => {
+                const container = document.getElementById(containerId);
+                if (!container || !items || !items.length) return;
+
+                // 清空现有项
+                container.innerHTML = '';
+
+                items.forEach(item => {
+                    // 调用全局的添加函数逻辑，这里手动模拟
+                    const div = document.createElement('div');
+                    div.className = 'array-item';
+                    div.innerHTML = `
+                        <input type="text" class="${inputClass}" value="${item}">
+                        <button type="button" class="remove-btn" onclick="removeArrayItem(this)">删除</button>
+                    `;
+                    container.appendChild(div);
+                });
+            };
+
+            // 1. 基础字段
+            setVal('objective', data.objective);
+            setVal('sceneType', data.sceneType);
+            setVal('cameraView', data.cameraView);
+            setVal('cameraDistance', data.cameraDistance);
+            setVal('cameraPerspective', data.cameraPerspective);
+            setVal('envLocation', data.envLocation);
+            setVal('envFloor', data.envFloor);
+            setVal('envAtmosphere', data.envAtmosphere);
+
+            // 2. 数组字段
+            setArray('architectureContainer', 'architecture-item', data.architecture);
+            setVal('lightPrimary', data.lightPrimary);
+            setArray('colorContrastContainer', 'colorContrast-item', data.colorContrast);
+            setArray('lightEffectsContainer', 'lightEffects-item', data.lightEffects);
+
+            // 3. 英雄 (复杂对象)
+            const heroesContainer = document.getElementById('heroesContainer');
+            heroesContainer.innerHTML = ''; // 清空
+            if (data.heroes && data.heroes.length) {
+                data.heroes.forEach(hero => {
+                    window.addCharacter('hero'); // 调用全局函数添加空模板
+                    const newHero = heroesContainer.lastElementChild;
+                    if (newHero) {
+                        if (hero.role) newHero.querySelector('.hero-role').value = hero.role;
+                        if (hero.armor) newHero.querySelector('.hero-armor').value = hero.armor;
+                        if (hero.weapon) newHero.querySelector('.hero-weapon').value = hero.weapon;
+                        if (hero.pose) newHero.querySelector('.hero-pose').value = hero.pose;
+                        if (hero.appearance) newHero.querySelector('.hero-appearance').value = hero.appearance;
+                        if (hero.magic) newHero.querySelector('.hero-magic').value = hero.magic;
+                    }
+                });
+            }
+
+            // 4. 敌人 (复杂对象)
+            const enemiesContainer = document.getElementById('enemiesContainer');
+            enemiesContainer.innerHTML = ''; // 清空
+            if (data.enemies && data.enemies.length) {
+                data.enemies.forEach(enemy => {
+                    window.addCharacter('enemy'); // 调用全局函数添加空模板
+                    const newEnemy = enemiesContainer.lastElementChild;
+                    if (newEnemy) {
+                        if (enemy.type) newEnemy.querySelector('.enemy-type').value = enemy.type;
+                        if (enemy.behavior) newEnemy.querySelector('.enemy-behavior').value = enemy.behavior;
+
+                        // 敌人外观数组处理
+                        const appContainer = newEnemy.querySelector('.enemy-appearance-container');
+                        appContainer.innerHTML = ''; // 清空默认的一个
+                        if (enemy.appearance && enemy.appearance.length) {
+                            enemy.appearance.forEach(appText => {
+                                const div = document.createElement('div');
+                                div.className = 'array-item';
+                                div.innerHTML = `
+                                    <input type="text" class="enemy-appearance-item" value="${appText}">
+                                    <button type="button" class="remove-btn" onclick="removeArrayItem(this)">删除</button>
+                                `;
+                                appContainer.appendChild(div);
+                            });
+                        }
+                    }
+                });
+            }
+
+            // 5. 其余字段
+            setVal('combatBlood', data.combatBlood);
+            setArray('combatMagicContainer', 'combatMagic-item', data.combatMagic);
+            setVal('combatEnvInteraction', data.combatEnvInteraction);
+            setArray('uiHudContainer', 'uiHud-item', data.uiHud);
+            setVal('uiStyle', data.uiStyle);
+            setVal('artGenre', data.artGenre);
+            setVal('artStyle', data.artStyle);
+            setArray('artInfluenceContainer', 'artInfluence-item', data.artInfluence);
+            setVal('artRendering', data.artRendering);
+            setArray('colorDominantContainer', 'colorDominant-item', data.colorDominant);
+            setArray('colorAccentContainer', 'colorAccent-item', data.colorAccent);
+            setVal('qualityDetail', data.qualityDetail);
+            setVal('qualityResolution', data.qualityResolution);
+            setVal('qualitySharpness', data.qualitySharpness);
+        }
+    </script>
+
+    <script>
+        // 添加数组项
+        function addArrayItem(containerId, className, placeholder) {
+            const container = document.getElementById(containerId);
+            const div = document.createElement('div');
+            div.className = 'array-item';
+            div.innerHTML = `
+                <input type="text" class="${className}" placeholder="${placeholder}">
+                <button type="button" class="remove-btn" onclick="removeArrayItem(this)">删除</button>
+            `;
+            container.appendChild(div);
+        }
+
+        // 删除数组项
+        function removeArrayItem(btn) {
+            btn.parentElement.remove();
+        }
+
+        // 添加敌人外观项
+        function addEnemyAppearance(btn) {
+            const container = btn.previousElementSibling;
+            const div = document.createElement('div');
+            div.className = 'array-item';
+            div.innerHTML = `
+                <input type="text" class="enemy-appearance-item" placeholder="例如：紫色腐烂的皮肤">
+                <button type="button" class="remove-btn" onclick="removeArrayItem(this)">删除</button>
+            `;
+            container.appendChild(div);
+        }
+
+        // 添加角色（英雄或敌人）
+        window.addCharacter = function (type) {
+            const container = type === 'hero' ?
+                document.getElementById('heroesContainer') :
+                document.getElementById('enemiesContainer');
+
+            const div = document.createElement('div');
+            div.className = 'character-item';
+
+            if (type === 'hero') {
+                div.innerHTML = `
+                    <div class="field">
+                        <label>角色类型（Role）：</label>
+                        <input type="text" class="hero-role" list="heroRoleOptions" placeholder="例如：重装骑士/战士">
+                    </div>
+                    <div class="field">
+                        <label>护甲/服装（Armor/Outfit）：</label>
+                        <input type="text" class="hero-armor" list="heroArmorOptions" placeholder="例如：重型中世纪板甲">
+                    </div>
+                    <div class="field">
+                        <label>武器（Weapon）：</label>
+                        <input type="text" class="hero-weapon" list="heroWeaponOptions" placeholder="例如：大型双手剑">
+                    </div>
+                    <div class="field">
+                        <label>姿态（Pose）：</label>
+                        <input type="text" class="hero-pose" list="heroPoseOptions" placeholder="例如：举剑准备攻击">
+                    </div>
+                    <div class="field">
+                        <label>外观/状态（Appearance/Condition）：</label>
+                        <input type="text" class="hero-appearance" list="heroAppearanceOptions" placeholder="例如：沾满鲜血的盔甲">
+                    </div>
+                    <div class="field">
+                        <label>魔法/技能（Magic/Skill）：</label>
+                        <input type="text" class="hero-magic" list="heroMagicOptions" placeholder="例如：双手环绕着火焰法术（可选）">
+                    </div>
+                    <button type="button" class="remove-btn" onclick="removeCharacter(this, 'hero')">删除此英雄</button>
+                `;
+            } else {
+                div.innerHTML = `
+                    <div class="field">
+                        <label>敌人类型（Type）：</label>
+                        <input type="text" class="enemy-type" list="enemyTypeOptions" placeholder="例如：变异恶魔/亡灵生物">
+                    </div>
+                    
+                    <div class="field">
+                        <label>外观（Appearance）：</label>
+                        <div class="enemy-appearance-container">
+                            <div class="array-item">
+                                <input type="text" class="enemy-appearance-item" placeholder="例如：紫色腐烂的皮肤">
+                                <button type="button" class="remove-btn" onclick="removeArrayItem(this)">删除</button>
+                            </div>
+                        </div>
+                        <button type="button" class="add-btn" onclick="addEnemyAppearance(this)">添加外观描述</button>
+                    </div>
+                    
+                    <div class="field">
+                        <label>行为（Behavior）：</label>
+                        <input type="text" class="enemy-behavior" list="enemyBehaviorOptions" placeholder="例如：包围并攻击英雄">
+                    </div>
+                    
+                    <button type="button" class="remove-btn" onclick="removeCharacter(this, 'enemy')">删除此敌人</button>
+                `;
+            }
+
+            container.appendChild(div);
+        }
+
+        // 删除角色
+        window.removeCharacter = function (btn, type) {
+            btn.parentElement.remove();
+        }
+
+        // 获取数组值
+        function getArrayValues(className) {
+            const inputs = document.getElementsByClassName(className);
+            const values = [];
+            for (let input of inputs) {
+                const value = input.value.trim();
+                if (value) values.push(value);
+            }
+            return values;
+        }
+
+        // 翻译函数：将中文翻译成英文
+        async function translateToEnglish(text) {
+            if (!text || text.trim() === '') return text;
+
+            // 检测是否包含中文字符
+            const hasChinese = /[\u4e00-\u9fa5]/.test(text);
+            if (!hasChinese) return text;
+
+            try {
+                // 使用MyMemory Translation API（免费）
+                const response = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=zh|en`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('翻译API请求失败');
+                }
+
+                const data = await response.json();
+
+                if (data.responseStatus === 200 && data.responseData && data.responseData.translatedText) {
+                    let translated = data.responseData.translatedText;
+                    // 清理翻译结果（移除可能的HTML标签）
+                    translated = translated.replace(/<[^>]*>/g, '');
+                    return translated.trim();
+                }
+            } catch (error) {
+                console.error('翻译失败:', error);
+                // 如果翻译失败，尝试使用备用方法
+                try {
+                    // 备用：使用Google Translate的非官方接口
+                    const response = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=zh&tl=en&dt=t&q=${encodeURIComponent(text)}`);
+                    const result = await response.json();
+                    if (result && result[0] && result[0][0] && result[0][0][0]) {
+                        return result[0][0][0];
+                    }
+                } catch (err) {
+                    console.error('备用翻译也失败:', err);
+                }
+            }
+
+            // 如果所有翻译方法都失败，返回原文
+            return text;
+        }
+
+        // 批量翻译文本数组
+        async function translateTexts(texts) {
+            const translatedTexts = [];
+            for (let i = 0; i < texts.length; i++) {
+                const text = texts[i];
+                if (text && text.trim() !== '') {
+                    const translated = await translateToEnglish(text);
+                    translatedTexts.push(translated);
+                    // 添加小延迟以避免API限制（除了最后一个）
+                    if (i < texts.length - 1) {
+                        await new Promise(resolve => setTimeout(resolve, 200));
+                    }
+                } else {
+                    translatedTexts.push(text);
+                }
+            }
+            return translatedTexts;
+        }
+        async function generateJSON() {
+            const generateBtn = document.getElementById('generateBtn');
+            const loadingText = document.getElementById('loadingText');
+
+            // 显示加载状态
+            generateBtn.disabled = true;
+            loadingText.style.display = 'inline';
+
+            try {
+                // 收集所有输入数据
+                const data = {
+                    objective: document.getElementById('objective').value.trim(),
+                    sceneType: document.getElementById('sceneType').value.trim(),
+                    cameraView: document.getElementById('cameraView').value.trim(),
+                    cameraDistance: document.getElementById('cameraDistance').value.trim(),
+                    cameraPerspective: document.getElementById('cameraPerspective').value.trim(),
+                    envLocation: document.getElementById('envLocation').value.trim(),
+                    envFloor: document.getElementById('envFloor').value.trim(),
+                    architecture: getArrayValues('architecture-item'),
+                    envAtmosphere: document.getElementById('envAtmosphere').value.trim(),
+                    lightPrimary: document.getElementById('lightPrimary').value.trim(),
+                    colorContrast: getArrayValues('colorContrast-item'),
+                    lightEffects: getArrayValues('lightEffects-item'),
+                    heroes: [],
+                    enemies: [],
+                    combatBlood: document.getElementById('combatBlood').value.trim(),
+                    combatMagic: getArrayValues('combatMagic-item'),
+                    combatEnvInteraction: document.getElementById('combatEnvInteraction').value.trim(),
+                    uiHud: getArrayValues('uiHud-item'),
+                    uiStyle: document.getElementById('uiStyle').value.trim(),
+                    artGenre: document.getElementById('artGenre').value.trim(),
+                    artStyle: document.getElementById('artStyle').value.trim(),
+                    artInfluence: getArrayValues('artInfluence-item'),
+                    artRendering: document.getElementById('artRendering').value.trim(),
+                    colorDominant: getArrayValues('colorDominant-item'),
+                    colorAccent: getArrayValues('colorAccent-item'),
+                    qualityDetail: document.getElementById('qualityDetail').value.trim(),
+                    qualityResolution: document.getElementById('qualityResolution').value.trim(),
+                    qualitySharpness: document.getElementById('qualitySharpness').value.trim(),
+                    negativePrompt: getArrayValues('negativePrompt-item'),
+                    keepElements: document.getElementById('keepElements').value.trim(),
+                    modifyElements: document.getElementById('modifyElements').value.trim(),
+                    addElements: document.getElementById('addElements').value.trim(),
+                    removeElements: document.getElementById('removeElements').value.trim()
+                };
+
+                // 收集英雄数据
+                const heroContainer = document.getElementById('heroesContainer');
+                const heroDivs = heroContainer.getElementsByClassName('character-item');
+                for (let heroItem of heroDivs) {
+                    const hero = {
+                        role: heroItem.querySelector('.hero-role')?.value.trim() || '',
+                        armor: heroItem.querySelector('.hero-armor')?.value.trim() || '',
+                        weapon: heroItem.querySelector('.hero-weapon')?.value.trim() || '',
+                        pose: heroItem.querySelector('.hero-pose')?.value.trim() || '',
+                        appearance: heroItem.querySelector('.hero-appearance')?.value.trim() || '',
+                        magic: heroItem.querySelector('.hero-magic')?.value.trim() || ''
+                    };
+                    if (hero.role || hero.armor || hero.weapon || hero.pose || hero.appearance || hero.magic) {
+                        data.heroes.push(hero);
+                    }
+                }
+
+                // 收集敌人数据
+                const enemyContainer = document.getElementById('enemiesContainer');
+                const enemyDivs = enemyContainer.getElementsByClassName('character-item');
+                for (let enemyItem of enemyDivs) {
+                    const enemyType = enemyItem.querySelector('.enemy-type')?.value.trim();
+                    const enemyBehavior = enemyItem.querySelector('.enemy-behavior')?.value.trim();
+
+                    // 收集敌人外观（可能有多个）
+                    const appearanceInputs = enemyItem.querySelectorAll('.enemy-appearance-item');
+                    const appearances = [];
+                    for (let input of appearanceInputs) {
+                        const value = input.value.trim();
+                        if (value) {
+                            appearances.push(value);
+                        }
+                    }
+
+                    const enemy = {
+                        type: enemyType || '',
+                        behavior: enemyBehavior || '',
+                        appearance: appearances
+                    };
+
+                    if (enemy.type || enemy.behavior || enemy.appearance.length > 0) {
+                        data.enemies.push(enemy);
+                    }
+                }
+
+                // 构建需要翻译的文本数组和字段映射
+                const textsToTranslate = [];
+                const textFieldMap = []; // 记录每个文本对应的字段信息
+
+                // 添加字段到翻译数组的辅助函数
+                function addFieldToTranslate(fieldValue, fieldInfo) {
+                    if (fieldValue && fieldValue.trim() !== '') {
+                        textsToTranslate.push(fieldValue);
+                        textFieldMap.push(fieldInfo);
+                    } else {
+                        textFieldMap.push({ type: 'empty' }); // 标记为空字段
+                    }
+                }
+
+                // 1. 简单字段
+                addFieldToTranslate(data.objective, { type: 'field', path: 'objective' });
+                addFieldToTranslate(data.sceneType, { type: 'field', path: 'sceneType' });
+                addFieldToTranslate(data.cameraView, { type: 'field', path: 'cameraView' });
+                addFieldToTranslate(data.cameraDistance, { type: 'field', path: 'cameraDistance' });
+                addFieldToTranslate(data.cameraPerspective, { type: 'field', path: 'cameraPerspective' });
+                addFieldToTranslate(data.envLocation, { type: 'field', path: 'envLocation' });
+                addFieldToTranslate(data.envFloor, { type: 'field', path: 'envFloor' });
+                addFieldToTranslate(data.envAtmosphere, { type: 'field', path: 'envAtmosphere' });
+                addFieldToTranslate(data.lightPrimary, { type: 'field', path: 'lightPrimary' });
+                addFieldToTranslate(data.combatBlood, { type: 'field', path: 'combatBlood' });
+                addFieldToTranslate(data.combatEnvInteraction, { type: 'field', path: 'combatEnvInteraction' });
+                addFieldToTranslate(data.uiStyle, { type: 'field', path: 'uiStyle' });
+                addFieldToTranslate(data.artGenre, { type: 'field', path: 'artGenre' });
+                addFieldToTranslate(data.artStyle, { type: 'field', path: 'artStyle' });
+                addFieldToTranslate(data.artRendering, { type: 'field', path: 'artRendering' });
+                addFieldToTranslate(data.qualityDetail, { type: 'field', path: 'qualityDetail' });
+                addFieldToTranslate(data.qualityResolution, { type: 'field', path: 'qualityResolution' });
+                addFieldToTranslate(data.qualitySharpness, { type: 'field', path: 'qualitySharpness' });
+                addFieldToTranslate(data.keepElements, { type: 'field', path: 'keepElements' });
+                addFieldToTranslate(data.modifyElements, { type: 'field', path: 'modifyElements' });
+                addFieldToTranslate(data.addElements, { type: 'field', path: 'addElements' });
+                addFieldToTranslate(data.removeElements, { type: 'field', path: 'removeElements' });
+
+                // 2. 数组字段 - 确保数组存在
+                if (data.architecture && Array.isArray(data.architecture)) {
+                    data.architecture.forEach(item => addFieldToTranslate(item, { type: 'array', path: 'architecture' }));
+                }
+                if (data.colorContrast && Array.isArray(data.colorContrast)) {
+                    data.colorContrast.forEach(item => addFieldToTranslate(item, { type: 'array', path: 'colorContrast' }));
+                }
+                if (data.lightEffects && Array.isArray(data.lightEffects)) {
+                    data.lightEffects.forEach(item => addFieldToTranslate(item, { type: 'array', path: 'lightEffects' }));
+                }
+                if (data.combatMagic && Array.isArray(data.combatMagic)) {
+                    data.combatMagic.forEach(item => addFieldToTranslate(item, { type: 'array', path: 'combatMagic' }));
+                }
+                if (data.uiHud && Array.isArray(data.uiHud)) {
+                    data.uiHud.forEach(item => addFieldToTranslate(item, { type: 'array', path: 'uiHud' }));
+                }
+                if (data.artInfluence && Array.isArray(data.artInfluence)) {
+                    data.artInfluence.forEach(item => addFieldToTranslate(item, { type: 'array', path: 'artInfluence' }));
+                }
+                if (data.colorDominant && Array.isArray(data.colorDominant)) {
+                    data.colorDominant.forEach(item => addFieldToTranslate(item, { type: 'array', path: 'colorDominant' }));
+                }
+                if (data.colorAccent && Array.isArray(data.colorAccent)) {
+                    data.colorAccent.forEach(item => addFieldToTranslate(item, { type: 'array', path: 'colorAccent' }));
+                }
+                if (data.negativePrompt && Array.isArray(data.negativePrompt)) {
+                    data.negativePrompt.forEach(item => addFieldToTranslate(item, { type: 'array', path: 'negativePrompt' }));
+                }
+
+                // 3. 英雄字段
+                if (data.heroes && Array.isArray(data.heroes)) {
+                    data.heroes.forEach((hero, heroIndex) => {
+                        addFieldToTranslate(hero.role, { type: 'hero', heroIndex: heroIndex, field: 'role' });
+                        addFieldToTranslate(hero.armor, { type: 'hero', heroIndex: heroIndex, field: 'armor' });
+                        addFieldToTranslate(hero.weapon, { type: 'hero', heroIndex: heroIndex, field: 'weapon' });
+                        addFieldToTranslate(hero.pose, { type: 'hero', heroIndex: heroIndex, field: 'pose' });
+                        addFieldToTranslate(hero.appearance, { type: 'hero', heroIndex: heroIndex, field: 'appearance' });
+                        addFieldToTranslate(hero.magic, { type: 'hero', heroIndex: heroIndex, field: 'magic' });
+                    });
+                }
+
+                // 4. 敌人字段
+                if (data.enemies && Array.isArray(data.enemies)) {
+                    data.enemies.forEach((enemy, enemyIndex) => {
+                        addFieldToTranslate(enemy.type, { type: 'enemy', enemyIndex: enemyIndex, field: 'type' });
+                        addFieldToTranslate(enemy.behavior, { type: 'enemy', enemyIndex: enemyIndex, field: 'behavior' });
+                        if (enemy.appearance && Array.isArray(enemy.appearance)) {
+                            enemy.appearance.forEach(app => {
+                                addFieldToTranslate(app, { type: 'enemyAppearance', enemyIndex: enemyIndex });
+                            });
+                        }
+                    });
+                }
+
+                // 翻译所有文本
+                const translatedTexts = await translateTexts(textsToTranslate);
+
+                // 使用映射关系重新构建翻译后的数据
+                const translatedData = {
+                    objective: '',
+                    sceneType: '',
+                    cameraView: '',
+                    cameraDistance: '',
+                    cameraPerspective: '',
+                    envLocation: '',
+                    envFloor: '',
+                    architecture: [],
+                    envAtmosphere: '',
+                    lightPrimary: '',
+                    colorContrast: [],
+                    lightEffects: [],
+                    heroes: [],
+                    enemies: [],
+                    combatBlood: '',
+                    combatMagic: [],
+                    combatEnvInteraction: '',
+                    uiHud: [],
+                    uiStyle: '',
+                    artGenre: '',
+                    artStyle: '',
+                    artInfluence: [],
+                    artRendering: '',
+                    colorDominant: [],
+                    colorAccent: [],
+                    qualityDetail: '',
+                    qualityResolution: '',
+                    qualitySharpness: '',
+                    negativePrompt: [],
+                    keepElements: '',
+                    modifyElements: '',
+                    addElements: '',
+                    removeElements: ''
+                };
+
+                // 初始化英雄数组
+                if (data.heroes && Array.isArray(data.heroes)) {
+                    for (let i = 0; i < data.heroes.length; i++) {
+                        translatedData.heroes.push({
+                            role: '', armor: '', weapon: '', pose: '', appearance: '', magic: ''
+                        });
+                    }
+                }
+
+                // 初始化敌人数组
+                if (data.enemies && Array.isArray(data.enemies)) {
+                    for (let i = 0; i < data.enemies.length; i++) {
+                        translatedData.enemies.push({
+                            type: '', behavior: '', appearance: []
+                        });
+                    }
+                }
+
+                // 根据映射关系分配翻译后的文本
+                let translationIndex = 0;
+                textFieldMap.forEach((fieldInfo, index) => {
+                    if (fieldInfo.type === 'empty') {
+                        // 空字段，跳过
+                        return;
+                    }
+
+                    const translatedText = translatedTexts[translationIndex] || '';
+                    translationIndex++;
+
+                    switch (fieldInfo.type) {
+                        case 'field':
+                            translatedData[fieldInfo.path] = translatedText;
+                            break;
+
+                        case 'array':
+                            if (translatedData[fieldInfo.path] && Array.isArray(translatedData[fieldInfo.path])) {
+                                translatedData[fieldInfo.path].push(translatedText);
+                            }
+                            break;
+
+                        case 'hero':
+                            if (translatedData.heroes[fieldInfo.heroIndex]) {
+                                translatedData.heroes[fieldInfo.heroIndex][fieldInfo.field] = translatedText;
+                            }
+                            break;
+
+                        case 'enemy':
+                            if (translatedData.enemies[fieldInfo.enemyIndex]) {
+                                translatedData.enemies[fieldInfo.enemyIndex][fieldInfo.field] = translatedText;
+                            }
+                            break;
+
+                        case 'enemyAppearance':
+                            if (translatedData.enemies[fieldInfo.enemyIndex] &&
+                                translatedData.enemies[fieldInfo.enemyIndex].appearance &&
+                                Array.isArray(translatedData.enemies[fieldInfo.enemyIndex].appearance)) {
+                                translatedData.enemies[fieldInfo.enemyIndex].appearance.push(translatedText);
+                            }
+                            break;
+                    }
+                });
+
+                // 构建JSON对象
+                const result = {
+                    Objective: translatedData.objective || null,
+                    SceneType: translatedData.sceneType || null,
+                    Camera: {
+                        View: translatedData.cameraView || null,
+                        Distance: translatedData.cameraDistance || null,
+                        Perspective: translatedData.cameraPerspective || null
+                    },
+                    Environment: {
+                        Location: translatedData.envLocation || null,
+                        Floor: translatedData.envFloor || null,
+                        Architecture: translatedData.architecture.length > 0 ? translatedData.architecture : null,
+                        Atmosphere: translatedData.envAtmosphere || null
+                    },
+                    Lighting: {
+                        Primary: translatedData.lightPrimary || null,
+                        ColorContrast: translatedData.colorContrast.length > 0 ? translatedData.colorContrast : null,
+                        Effects: translatedData.lightEffects.length > 0 ? translatedData.lightEffects : null
+                    },
+                    Characters: {
+                        Heroes: translatedData.heroes.length > 0 ? translatedData.heroes.map(h => {
+                            const heroObj = {};
+                            if (h.role) heroObj.Role = h.role;
+                            if (h.armor) heroObj.Armor = h.armor;
+                            if (h.weapon) heroObj.Weapon = h.weapon;
+                            if (h.pose) heroObj.Pose = h.pose;
+                            if (h.appearance) heroObj.Condition = h.appearance;
+                            if (h.magic) heroObj.Magic = h.magic;
+                            return heroObj;
+                        }) : null,
+                        Enemies: translatedData.enemies.length > 0 ? translatedData.enemies.map(e => {
+                            const enemyObj = {};
+                            if (e.type) enemyObj.Type = e.type;
+                            if (e.appearance && e.appearance.length > 0) enemyObj.Appearance = e.appearance;
+                            if (e.behavior) enemyObj.Behavior = e.behavior;
+                            return enemyObj;
+                        }) : null
+                    },
+                    CombatEffects: {
+                        Blood: translatedData.combatBlood || null,
+                        Magic: translatedData.combatMagic.length > 0 ? translatedData.combatMagic : null,
+                        EnvironmentInteraction: translatedData.combatEnvInteraction || null
+                    },
+                    UIElements: {
+                        HUD: translatedData.uiHud.length > 0 ? translatedData.uiHud : null,
+                        Style: translatedData.uiStyle || null
+                    },
+                    ArtStyle: {
+                        Genre: translatedData.artGenre || null,
+                        Style: translatedData.artStyle || null,
+                        Influence: translatedData.artInfluence.length > 0 ? translatedData.artInfluence : null,
+                        Rendering: translatedData.artRendering || null
+                    },
+                    ColorPalette: {
+                        Dominant: translatedData.colorDominant.length > 0 ? translatedData.colorDominant : null,
+                        Accent: translatedData.colorAccent.length > 0 ? translatedData.colorAccent : null
+                    },
+                    QualitySettings: {
+                        DetailLevel: translatedData.qualityDetail || null,
+                        Resolution: translatedData.qualityResolution || null,
+                        Sharpness: translatedData.qualitySharpness || null
+                    },
+                    NegativePrompt: translatedData.negativePrompt.length > 0 ? translatedData.negativePrompt : null,
+                    ImageToImageInstructions: {
+                        KeepElements: translatedData.keepElements || null,
+                        ModifyElements: translatedData.modifyElements || null,
+                        AddElements: translatedData.addElements || null,
+                        RemoveElements: translatedData.removeElements || null
+                    }
+                };
+
+                // 清理null值
+                function cleanNull(obj) {
+                    if (Array.isArray(obj)) {
+                        return obj.filter(item => item !== null && item !== '');
+                    }
+                    if (typeof obj === 'object' && obj !== null) {
+                        const cleaned = {};
+                        for (let key in obj) {
+                            const value = cleanNull(obj[key]);
+                            if (value !== null && value !== '' && (Array.isArray(value) ? value.length > 0 : true)) {
+                                cleaned[key] = value;
+                            }
+                        }
+                        return Object.keys(cleaned).length > 0 ? cleaned : null;
+                    }
+                    return obj;
+                }
+
+                const cleanedResult = cleanNull(result);
+
+                // 显示结果
+                const jsonOutput = document.getElementById('jsonOutput');
+                jsonOutput.textContent = JSON.stringify(cleanedResult, null, 2);
+
+                const outputSection = document.getElementById('outputSection');
+                outputSection.classList.add('show');
+
+                // 滚动到输出区域
+                outputSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+            } catch (error) {
+                console.error('生成JSON失败:', error);
+                alert('生成失败，请重试：' + error.message);
+            } finally {
+                // 恢复按钮状态
+                generateBtn.disabled = false;
+                loadingText.style.display = 'none';
+            }
+        }
+        function copyJSON() {
+            const jsonOutput = document.getElementById('jsonOutput');
+            const text = jsonOutput.textContent;
+
+            // 使用现代API复制到剪贴板
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showCopySuccess();
+                }).catch(err => {
+                    console.error('复制失败:', err);
+                    fallbackCopy(text);
+                });
+            } else {
+                fallbackCopy(text);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showCopySuccess();
+            } catch (err) {
+                console.error('复制失败:', err);
+            }
+            document.body.removeChild(textarea);
+        }
+
+        function showCopySuccess() {
+            const copySuccess = document.getElementById('copySuccess');
+            copySuccess.textContent = '✓ 已复制到剪贴板';
+            setTimeout(() => {
+                copySuccess.textContent = '';
+            }, 2000);
+        }
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // 1. 创建目录容器
+            const sidebar = document.createElement('div');
+            sidebar.className = 'catalog-sidebar';
+            sidebar.innerHTML = '<div class="catalog-title">📌 快速导航</div><ul class="catalog-list" id="catalogList"></ul>';
+            document.body.appendChild(sidebar);
+
+            const catalogList = document.getElementById('catalogList');
+
+            // 2. 定义我们要导航的目标元素列表
+            // 结构：{ element: DOM对象, label: '显示文本', isSpecial: 是否特殊高亮 }
+            const navTargets = [];
+
+            // A. 添加顶部的 AI 上传区域
+            const uploadSection = document.querySelector('.ai-upload-section');
+            if (uploadSection) {
+                // 给它补一个ID方便跳转
+                uploadSection.id = 'nav-ai-upload';
+                navTargets.push({ el: uploadSection, label: '零、AI图片解析与填充', isSpecial: true });
+            }
+
+            // B. 添加中间所有的 H2 标题
+            const headers = document.querySelectorAll('.section h2');
+            headers.forEach((header, index) => {
+                const id = 'section-' + index;
+                header.id = id;
+                navTargets.push({ el: header, label: header.innerText, isSpecial: false });
+            });
+
+            // C. 添加底部的 生成按钮
+            const generateBtn = document.getElementById('generateBtn');
+            if (generateBtn) {
+                // 按钮已有ID，不需要补
+                navTargets.push({ el: generateBtn, label: '十三、生成JSON提示词', isSpecial: true });
+            }
+
+            // 3. 设置 IntersectionObserver (滚动监听)
+            const observerOptions = {
+                root: null,
+                rootMargin: '-10% 0px -70% 0px',
+                threshold: 0
+            };
+
+            const observerCallback = (entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        document.querySelectorAll('.catalog-link').forEach(link => link.classList.remove('active'));
+                        const activeLink = document.querySelector(`.catalog-link[data-target="${entry.target.id}"]`);
+                        if (activeLink) {
+                            activeLink.classList.add('active');
+                            activeLink.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                        }
+                    }
+                });
+            };
+
+            const observer = new IntersectionObserver(observerCallback, observerOptions);
+
+            // 4. 循环生成目录项
+            navTargets.forEach(item => {
+                if (!item.el) return;
+
+                observer.observe(item.el);
+
+                const li = document.createElement('li');
+                li.className = 'catalog-item';
+
+                const a = document.createElement('a');
+                a.className = 'catalog-link' + (item.isSpecial ? ' special-link' : '');
+                a.innerText = item.label;
+                a.title = item.label;
+                // 使用自定义属性绑定目标ID，防止ID中包含特殊字符导致选择器报错
+                a.setAttribute('data-target', item.el.id);
+
+                a.onclick = (e) => {
+                    e.preventDefault();
+                    item.el.scrollIntoView({ behavior: 'smooth' });
+                    // 手动激活样式
+                    document.querySelectorAll('.catalog-link').forEach(link => link.classList.remove('active'));
+                    a.classList.add('active');
+                };
+
+                li.appendChild(a);
+                catalogList.appendChild(li);
+            });
+        });
+    </script>
+</body>
+
+</html>
