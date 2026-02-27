@@ -1138,7 +1138,12 @@
             } catch (error) {
                 console.error("AI Error:", error);
                 statusDiv.textContent = '❌ 解析失败: ' + error.message;
-                alert('AI 解析失败，请检查 API Key 是否正确或网络连接。');
+                const userChoice = confirm('AI 解析失败，请检查 API Key 是否正确或网络连接。\n\n是否需要清除当前保存的 API Key 并重新上传？');
+                if (userChoice) {
+                    localStorage.removeItem('GEMINI_API_KEY');
+                    document.getElementById('imageInput').value = '';
+                    statusDiv.textContent = '已清除旧 API Key，请再次点击“选择图片并解析”输入新的 Key。';
+                }
             }
         };
 
