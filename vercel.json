@@ -1,4 +1,9 @@
 {
+    "api": {
+        "bodyParser": {
+            "sizeLimit": "10mb"
+        }
+    },
     "rewrites": [
         {
             "source": "/",
