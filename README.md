@@ -15,7 +15,15 @@
 - **竞品画面分析与逆向复刻**：上传优秀的同行游戏截图，通过“AI智能解析”一键拆解其美术构图、光影配置和环境材质，反向提炼出属于自己的结构化生图参数。
 - **程序化批量资产生成**：配合外部自动化流水线或脚本引擎，可将生成的标准 JSON 数据丢入云端渲染程序，批量生成统一透视规格、统一打光的游戏宣传图或加载过场插画。
 
-## 🚀 运行与配置方式
-1. **获取工具**：下载或获取本项目的 `ComplicatedScene-JSONPromptGenerator.html` 文件。
-2. **直接启动**：在任何现代浏览器（如 Chrome, Edge, Firefox 等）中**双击打开**该 HTML 文件。
-3. **配置密钥**：在页面内的设置区域输入您的 Google Gemini API Key（支持即用即配），点击保存即可解锁“图片 AI 智能解析”功能。
+## 🚀 部署与运行方式 (Deployment)
+为了团队内多人协同使用且**绝对保护 API Key 不被泄露**，本项目已配置为支持 Vercel Serverless 代理部署：
+
+1. **Fork/Clone 本项目**：将代码仓库推送到你的个人 GitHub。
+2. **导入 Vercel**：在 [Vercel](https://vercel.com/) 工作台新建项目，选择该 GitHub 仓库进行导入。
+3. **配置环境变量**：在 Vercel 项目的 `Settings -> Environment Variables` 中添加密钥：
+   - Key: `GEMINI_API_KEY`
+   - Value: 你的 Google Gemini API Key
+4. **一键分发**：点击 Deploy 部署完成后，Vercel 会生成一个安全的 `.vercel.app` 链接。将该链接发给团队成员，即可**免配置密钥直接使用**（图片解析请求会由后端安全转发，前端抓包无法看到真实 Key）。
+
+> **💡 Note：** 
+> 免费版 Vercel 对请求负载有限制，但本项目已内置**前端 Canvas 自动缩放压缩脚本**。用户上传的高清或超大游戏截图，在传输前会自动在浏览器端无损压缩，完美绕过 4.5MB 上传限制，稳定极速出词。
