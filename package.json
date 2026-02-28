@@ -1,0 +1,15 @@
+{
+  "name": "complicatedscene-jsonpromptgenerator",
+  "version": "1.0.0",
+  "description": "Vercel serverless function package config",
+  "main": "api/generate.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0"
+  },
+  "engines": {
+    "node": ">=18.x"
+  }
+}
