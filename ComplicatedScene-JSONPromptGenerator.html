@@ -1018,14 +1018,17 @@
             statusDiv.style.display = 'block';
             statusDiv.textContent = '正在读取图片并准备发送给 AI...';
 
-            // 显示预览
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                previewImg.src = e.target.result;
-                previewImg.style.display = 'block';
-            };
-            reader.readAsDataURL(file);
-
+            // 显示预览并获取 Data URL
+            const dataUrl = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    previewImg.src = e.target.result;
+                    previewImg.style.display = 'block';
+                    resolve(e.target.result);
+                };
+                reader.onerror = () => reject(new Error('文件读取失败'));
+                reader.readAsDataURL(file);
+            });
 
             try {
                 // 客户端图片压缩：Vercel免费版接口最大接收 4.5MB，所以我们在前端先把图片按比例缩小
@@ -1062,7 +1065,7 @@
                         resolve(dataUrl.split(',')[1]);
                     };
                     img.onerror = () => reject(new Error('图片加载失败'));
-                    img.src = previewImg.src; // 使用刚才读取并预览好的图片资源
+                    img.src = dataUrl; // 使用刚刚读取的图片数据
                 });
 
                 statusDiv.textContent = '图片压缩完成，正在请求 AI 进行解析...';
