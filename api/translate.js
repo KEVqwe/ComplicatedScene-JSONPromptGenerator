@@ -30,14 +30,10 @@ export default async function handler(req, res) {
         }
 
         const genAI = new GoogleGenerativeAI(API_KEY);
-        // 使用用户指定的模型
-        const model = genAI.getGenerativeModel({
-            model: 'gemini-3-flash-preview',
-            generationConfig: { 
-                responseMimeType: 'application/json',
-                temperature: 0.1 // 降低随机性，确保翻译稳定性
-            }
-        });
+        
+        const models = ['gemini-3.1-flash-lite-preview', 'gemini-3-flash-preview'];
+        let result = null;
+        let lastError = null;
 
         const prompt = `
             # ROLE
@@ -63,7 +59,27 @@ export default async function handler(req, res) {
             ${JSON.stringify(texts)}
         `;
 
-        const result = await model.generateContent(prompt);
+        for (const modelName of models) {
+            try {
+                const model = genAI.getGenerativeModel({
+                    model: modelName,
+                    generationConfig: { 
+                        responseMimeType: 'application/json',
+                        temperature: 0.1 
+                    }
+                });
+                result = await model.generateContent(prompt);
+                break; // 成功则跳出循环
+            } catch (err) {
+                console.error(`模型 ${modelName} 调用失败，正在尝试下一个模型...`, err);
+                lastError = err;
+            }
+        }
+
+        if (!result) {
+            throw lastError || new Error('所有模型调用均失败');
+        }
+
         const response = await result.response;
         let jsonText = response.text();
         

@@ -26,10 +26,10 @@ export default async function handler(req, res) {
         }
 
         const genAI = new GoogleGenerativeAI(API_KEY);
-        const model = genAI.getGenerativeModel({
-            model: 'gemini-3-flash-preview',
-            generationConfig: { responseMimeType: 'application/json' }
-        });
+        
+        const models = ['gemini-3.1-flash-lite-preview', 'gemini-3-flash-preview'];
+        let result = null;
+        let lastError = null;
 
         const prompt = `
                 你是一位资深的游戏视觉分解专家与美术指导。请专业、细致地分析这张游戏截图，并以此 JSON 格式返回。所有输出文本必须是中文。
@@ -76,10 +76,26 @@ export default async function handler(req, res) {
                 }
                 `;
 
-        const result = await model.generateContent([
-            prompt,
-            { inlineData: { data: image, mimeType: mimeType } }
-        ]);
+        for (const modelName of models) {
+            try {
+                const model = genAI.getGenerativeModel({
+                    model: modelName,
+                    generationConfig: { responseMimeType: 'application/json' }
+                });
+                result = await model.generateContent([
+                    prompt,
+                    { inlineData: { data: image, mimeType: mimeType } }
+                ]);
+                break; // 成功则跳出循环
+            } catch (err) {
+                console.error(`模型 ${modelName} 调用失败，正在尝试下一个模型...`, err);
+                lastError = err;
+            }
+        }
+
+        if (!result) {
+            throw lastError || new Error('所有模型调用均失败');
+        }
 
         const response = await result.response;
         const jsonText = response.text();
