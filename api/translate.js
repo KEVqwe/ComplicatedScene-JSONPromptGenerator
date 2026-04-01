@@ -30,29 +30,53 @@ export default async function handler(req, res) {
         }
 
         const genAI = new GoogleGenerativeAI(API_KEY);
-        // 使用 gemini-1.5-flash 模型，速度更快且成本更低，适合翻译任务
+        // 使用用户指定的模型
         const model = genAI.getGenerativeModel({
-            model: 'gemini-1.5-flash',
-            generationConfig: { responseMimeType: 'application/json' }
+            model: 'gemini-3-flash-preview',
+            generationConfig: { 
+                responseMimeType: 'application/json',
+                temperature: 0.1 // 降低随机性，确保翻译稳定性
+            }
         });
 
         const prompt = `
-            你是一位专业的游戏美术术语翻译专家。请将以下中文数组中的内容翻译成地道的英文。要求如下：
-            
-            1. 术语专业：涉及游戏视觉表现、美术流派（如：次世代、PBR、等距视角、暗黑风格）时，使用行业标准的英语术语。
-            2. 语境一致：所有内容都源自同一个游戏画面描述，请确保翻译风格的前后一致性。
-            3. 格式要求：直接返回一个 JSON 对象，包含一个名为 "translatedTexts" 的字符串数组，数组顺序必须与输入数组完全一致。
-            4. 保持原样：如果数组中的某项已经是英文、数字或特殊字符，请直接保留。
-            5. 不要多言：只输出要求的 JSON。
+            # ROLE
+            You are a professional game art assets and prompt translation expert. 
+            Your task is to translate the provided CHINESE text array into high-quality, game-industry standard ENGLISH.
 
-            待翻译数组：
+            # INSTRUCTIONS
+            1.  **MANDATORY TRANSLATION**: Every Chinese string in the input array MUST be translated into English. Do NOT return the original Chinese.
+            2.  **TERMINOLOGY**: Use professional terms for game aesthetics, views, and rendering (e.g., "Isometric", "PBR", "Global Illumination", "Dark Fantasy").
+            3.  **PRESERVE NON-CHINESE**: If a string contains ONLY English, numbers, or special symbols (e.g., "RTX 3080", "4K"), keep it as is.
+            4.  **CONSISTENCY**: Ensure terminology remains consistent across all elements in the array.
+            5.  **OUTPUT FORMAT**: Strictly return a single JSON object with a key "translatedTexts" containing a string array of exactly the same length and order as the input.
+
+            # EXAMPLES
+            Input: ["等距视角动作RPG", "暗黑哥特风", "覆盖着血液的地面"]
+            Output: {"translatedTexts": ["Isometric Action RPG", "Dark Gothic Style", "Blood-covered ground"]}
+
+            Input: ["RTX 开启", "1920x1080"]
+            Output: {"translatedTexts": ["RTX On", "1920x1080"]}
+
+            # DATA TO TRANSLATE
+            INPUT ARRAY (JSON FORMAT):
             ${JSON.stringify(texts)}
         `;
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
-        const jsonText = response.text();
+        let jsonText = response.text();
+        
+        // 健壮性：手动处理可能的 Markdown 代码块包裹
+        if (jsonText.includes('```')) {
+            jsonText = jsonText.replace(/```json|```/g, '').trim();
+        }
+
         const data = JSON.parse(jsonText);
+
+        if (!data.translatedTexts || !Array.isArray(data.translatedTexts)) {
+            throw new Error('LLM output format is invalid');
+        }
 
         res.status(200).json(data);
 
